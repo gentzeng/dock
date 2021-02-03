@@ -518,7 +518,7 @@ for i in "${opts[@]}"; do
       modeDesign=true
       continue
       ;;
-    -md|--set-three) #########################################################
+    -mt|--set-three) #########################################################
       modeSet="$i"
       modeSetN=4
       msgMode="desktopThreeMon"
