@@ -8,15 +8,15 @@ N='\033[0;0m'
 
 Version="0.7"
 tmpHelpPage=/tmp/dockHelp.tmp
-pathConfig=~/JARVIS/ConfigFiles
+pathConfig=~/.dock
 argsNum=0
 args=()
 optsNum=0
 opts=()
 
 MonEA=DP1
-MonEB=HDMI1
-MonEC=VGA1
+MonEB=HDMI-0
+MonEC=DVI-0
 MonI=LVDS1
 
 msg="Switching to mode:"
@@ -38,11 +38,10 @@ if [ "$#" -lt 0 ]; then
   exit
 fi
 
-xrandr
-#Load Config, use as Cfg Array
+# load config containing all Mon* variables and Cfg
 source $pathConfig/dock.conf
 
-#help information page functions
+# help information page functions
 help_Name () {
   echo -e -n \
   "${R}NAME                        ${N}                                   \n"\
@@ -169,16 +168,22 @@ function setMonitor() {
   msgL=""
   solLA=""
   solLB=""
+  solLC=""
   outLA=""
   outLB=""
+  outLC=""
   rotLA="normal"
   rotLB="normal"
+  rotLC="normal"
   oriLA=""
   oriLB="--right-of"
+  oriLC="--left-of"
   posLA="0x0"
   posLB="0x0"
+  posLC="0x0"
   prmLA="--primary"
   prmLB=""
+  prmLC=""
 
   #scan for Arguments and options
   for i in "$@"; do
@@ -204,14 +209,22 @@ function setMonitor() {
         ;;
       --solB=*) ##############################################################
         solLB=${i:7}
-        continue 
+        continue
+        ;;
+      --solC=*) ##############################################################
+        solLC=${i:7}
+        continue
         ;;
       --outA=*) ##############################################################
         outLA=${i:7}
-        continue 
+        continue
         ;;
       --outB=*) ##############################################################
         outLB=${i:7}
+        continue
+        ;;
+      --outC=*) ##############################################################
+        outLC=${i:7}
         continue
         ;;
       --rotA=*) ##############################################################
@@ -222,12 +235,20 @@ function setMonitor() {
         rotLB=${i:7}
         continue
         ;;
+      --rotC=*) ##############################################################
+        rotLC=${i:7}
+        continue
+        ;;
       --oriA=*) ##############################################################
         oriLA=${i:7}
         continue
         ;;
       --oriB=*) ##############################################################
         oriLB=${i:7}
+        continue
+        ;;
+      --oriC=*) ##############################################################
+        oriLC=${i:7}
         continue
         ;;
       --posA=*) ##############################################################
@@ -238,12 +259,20 @@ function setMonitor() {
         posLB=${i:7}
         continue
         ;;
+      --posC=*) ##############################################################
+        posLC=${i:7}
+        continue
+        ;;
       --prmA=*) ##############################################################
         prmLA=${i:7}
         continue
         ;;
       --prmB=*) ##############################################################
         prmLB=${i:7}
+        continue
+        ;;
+      --prmC=*) ##############################################################
+        prmLC=${i:7}
         continue
         ;;
       *) #####################################################################
@@ -269,38 +298,52 @@ function setMonitor() {
     echo -e "oriLB = ${oriLB}"
     echo -e "posLB = ${posLB}"
     echo -e "prmLB = ${prmLB}"
+    echo -e "outLC = ${outLC}"
+    echo -e "solLC = ${solLC}"
+    echo -e "rotLC = ${rotLC}"
+    echo -e "oriLC = ${oriLC}"
+    echo -e "posLC = ${posLC}"
+    echo -e "prmLC = ${prmLC}"
     echo -e "chwp  = ${chwpMode}"
   fi
 
-  if [[ $Verbose == true ]]; then
-    echo -e "${msgL}";
-  fi
+ if [[ $Verbose == true ]]; then
+   echo -e "${msgL}";
+ fi
 
-  xrandr \
-    --display :0.0 \
-    ${DRYRUN} \
-    --output $MonI \
-    --off \
-    --output $MonEA \
-    --off \
-    --output $MonEB \
-    --off \
-    --output $MonEC \
-    --off \
+ xrandr \
+   --display :0.0 \
+   ${DRYRUN} \
+   --output $MonI \
+   --off \
+   --output $MonEA \
+   --off \
+   --output $MonEB \
+   --off \
+   --output $MonEC \
+   --off \
 
-  xrandr \
-    --display :0.0 \
-    ${DRYRUN} \
-    --output ${outLA} \
-    --mode ${solLA} \
-    --rotate ${rotLA} \
-    --pos ${posLA} \
-    ${prmLA} \
+ xrandr \
+   --display :0.0 \
+   ${DRYRUN} \
+   --output ${outLA} \
+   --mode ${solLA} \
+   --rotate ${rotLA} \
+   --pos ${posLA} \
+   ${prmLA} \
 
-  if [ $modeSetN -gt 1 ]; then
+  if [ $modeSetN -ge 2 ]; then
     if [[ $Debug == true ]]; then
-      echo -e "Setting second monitor."
+      echo -e -n "Setting second monitor"
+    	if [[ $modeSetN -eq 2 ]]; then
+    		echo -e "/beamer."
+    	elif [[ $modeSetN -eq 3 ]]; then
+    		echo -e -n " for docking station.\n"
+    	elif [[ $modeSetN -eq 4 ]]; then
+    		echo -e -n " for desktop setup.\n"
+    	fi
     fi
+
     xrandr \
       --display :0.0 \
       ${DRYRUN} \
@@ -309,21 +352,23 @@ function setMonitor() {
       --rotate ${rotLB} \
       ${oriLB} ${outLA} \
       --pos ${posLB} \
-
+   		${prmLB}
   fi
 
-  if [ $modeSetN -gt 2 ]; then
+  if [ $modeSetN -eq 4 ]; then
     if [[ $Debug == true ]]; then
-      echo -e "Setting second monitor for dock."
+      echo -e "Setting third monitor for desktop."
     fi
+
     xrandr \
       --display :0.0 \
       ${DRYRUN} \
-      --output ${outLB} \
-      --mode ${solLB} \
-      --rotate ${rotLB} \
-      --pos ${posLB} \
-
+      --output ${outLC} \
+      --mode ${solLC} \
+      --rotate ${rotLC} \
+      ${oriLC} ${outLA} \
+      --pos ${posLC} \
+   		${prmLC}
   fi
 
   if [[ $modeDesign == true ]]; then
@@ -350,7 +395,7 @@ function chooseMode () {
   prmB=""
 
 
-  for (( x = 0; x<${#Cfg[@]}; x=x+15 )); do
+  for (( x = 0; x<${#Cfg[@]}; x=x+22 )); do
     for i in "$1"; do
       if [ "${Cfg[$x+0]}" == "$i" ]; then
         outA=${Cfg[$x+1]}
@@ -368,6 +413,13 @@ function chooseMode () {
         posB=${Cfg[$x+12]}
         prmB=${Cfg[$x+13]}
         chwpMode=${Cfg[$x+14]}
+
+        outC=${Cfg[$x+15]}
+        solC=${Cfg[$x+16]}
+        rotC=${Cfg[$x+17]}
+        oriC=${Cfg[$x+18]}
+        posC=${Cfg[$x+19]}
+        prmC=${Cfg[$x+20]}
         break
       fi
     done
@@ -376,6 +428,7 @@ function chooseMode () {
   setMonitor \
     --outA=${outA} --solA=${solA} --rotA=${rotA} --oriA=${oriA} --posA=${posA} --prmA=${prmA} \
     --outB=${outB} --solB=${solB} --rotB=${rotB} --oriB=${oriB} --posB=${posB} --prmB=${prmB} \
+    --outC=${outC} --solC=${solC} --rotC=${rotC} --oriC=${oriC} --posC=${posC} --prmC=${prmC} \
     --msgL="${msg} ${msgMode} with settings: ${msgWhere}." \
     ;
 }
@@ -465,6 +518,12 @@ for i in "${opts[@]}"; do
       modeDesign=true
       continue
       ;;
+    -md|--set-three) #########################################################
+      modeSet="$i"
+      modeSetN=4
+      msgMode="desktopThreeMon"
+      continue
+      ;;
     -md|--set-dock) ##########################################################
       modeSet="$i"
       modeSetN=3
@@ -546,6 +605,7 @@ xrandr --dpi 96
 if [ "$argsNum" -ge 1 ]; then
   mode="${args[0]}"
 fi
+
 if [[ $Verbose == true ]]; then
   echo "Docking Station setting script";
   echo "----------------------------------------------------------------------"
